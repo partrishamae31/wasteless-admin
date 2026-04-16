@@ -1,0 +1,148 @@
+import React, { useState } from 'react';
+import { 
+  FileText, 
+  Eye, 
+  CheckCircle, 
+  XCircle, 
+  Check, 
+  X,
+  PartyPopper,
+  ArrowRight
+} from "lucide-react";
+
+const VerifyCredentialsModal = ({ isOpen, onClose, shopData }) => {
+  const [isSuccess, setIsSuccess] = useState(false);
+  const [checklist, setChecklist] = useState({
+    permitValid: false,
+    certLegit: false,
+    nameMatches: false,
+    contactVerified: false
+  });
+
+  if (!isOpen) return null;
+
+  const handleCheck = (key) => {
+    setChecklist(prev => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  const handleApprove = () => {
+    // In a real app, you'd trigger your Supabase update here
+    setIsSuccess(true);
+  };
+
+  const handleFinalClose = () => {
+    setIsSuccess(false);
+    onClose();
+  };
+
+  const isAllChecked = Object.values(checklist).every(val => val === true);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-6">
+      <div className="bg-white w-full max-w-2xl rounded-2xl shadow-xl overflow-hidden animate-in fade-in zoom-in duration-200 flex flex-col max-h-[90vh]">
+        
+        {!isSuccess ? (
+          <>
+            {/* Header */}
+            <div className="flex justify-between items-center p-6 border-b border-slate-100 flex-shrink-0">
+              <h2 className="text-xl font-bold text-slate-800">Verify Repair Shop Credentials</h2>
+              <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
+                <X size={20} className="text-slate-500" />
+              </button>
+            </div>
+
+            {/* Scrollable Content */}
+            <div className="p-6 overflow-y-auto">
+              <div className="grid grid-cols-2 gap-6 p-5 bg-slate-50 rounded-xl mb-6">
+                <div>
+                  <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Shop Name</p>
+                  <p className="text-sm font-medium text-slate-700">{shopData?.name || 'E-Parts Hub'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Contact Email</p>
+                  <p className="text-sm font-medium text-slate-700">{shopData?.email || 'eparts@email.com'}</p>
+                </div>
+              </div>
+
+              {/* Document Previews */}
+              <div className="space-y-4 mb-8">
+                <DocumentPreview title="Business Permit / DTI Registration" id="BP-EPH-2026" />
+                <DocumentPreview title="Technical Certification" id="TESDA-CERT-2026" />
+              </div>
+
+              {/* Checklist */}
+              <div className="border border-blue-100 bg-blue-50/30 rounded-xl p-6">
+                <h3 className="text-sm font-bold text-slate-800 mb-4">Verification Checklist:</h3>
+                <div className="space-y-3">
+                  <CheckItem label="Business permit is valid and not expired" checked={checklist.permitValid} onChange={() => handleCheck('permitValid')} />
+                  <CheckItem label="Technical certification is legitimate" checked={checklist.certLegit} onChange={() => handleCheck('certLegit')} />
+                  <CheckItem label="Shop name matches official documents" checked={checklist.nameMatches} onChange={() => handleCheck('nameMatches')} />
+                  <CheckItem label="Contact information is verified" checked={checklist.contactVerified} onChange={() => handleCheck('contactVerified')} />
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-6 border-t border-slate-100 flex gap-4 flex-shrink-0">
+              <button onClick={onClose} className="flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-red-200 text-red-600 font-semibold hover:bg-red-50 transition-colors">
+                <XCircle size={18} /> Reject
+              </button>
+              <button 
+                disabled={!isAllChecked}
+                onClick={handleApprove}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-semibold transition-all ${
+                  isAllChecked ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-200 hover:bg-emerald-600' : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                }`}
+              >
+                <CheckCircle size={18} /> Approve & Verify
+              </button>
+            </div>
+          </>
+        ) : (
+          /* SUCCESS VIEW */
+          <div className="p-12 flex flex-col items-center text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-6">
+              <PartyPopper size={40} />
+            </div>
+            <h2 className="text-2xl font-bold text-slate-800 mb-2">Shop Verified Successfully!</h2>
+            <p className="text-slate-500 mb-8 max-w-sm">
+              <span className="font-semibold text-slate-700">{shopData?.name}</span> is now a verified partner. They can now bid on e-waste listings and offer repair services.
+            </p>
+            <button 
+              onClick={handleFinalClose}
+              className="w-full max-w-xs flex items-center justify-center gap-2 py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200"
+            >
+              Back to User Management
+              <ArrowRight size={18} />
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Helper Components
+const DocumentPreview = ({ title, id }) => (
+  <div>
+    <p className="text-xs font-semibold text-slate-500 mb-2">{title}</p>
+    <div className="border-2 border-dashed border-slate-200 rounded-xl p-6 flex flex-col items-center justify-center bg-white hover:border-blue-300 transition-colors group cursor-pointer">
+      <FileText size={24} className="text-slate-300 mb-2 group-hover:text-blue-400" />
+      <p className="text-[10px] text-slate-400 mb-1">ID: {id}</p>
+      <button className="text-xs font-bold text-purple-600 hover:underline flex items-center gap-1">
+        <Eye size={12} /> View
+      </button>
+    </div>
+  </div>
+);
+
+const CheckItem = ({ label, checked, onChange }) => (
+  <label className="flex items-center gap-3 cursor-pointer group">
+    <div className={`w-5 h-5 rounded border flex items-center justify-center transition-all ${checked ? 'bg-emerald-500 border-emerald-500' : 'bg-white border-slate-300'}`} onClick={onChange}>
+      {checked && <Check size={14} className="text-white" />}
+    </div>
+    <span className={`text-sm ${checked ? 'text-slate-700 font-medium' : 'text-slate-500'}`}>{label}</span>
+  </label>
+);
+
+export default VerifyCredentialsModal;
