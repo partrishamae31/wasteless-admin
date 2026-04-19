@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { supabase } from "../../supabaseClient";
 import { 
   FileText, 
   Eye, 
@@ -25,9 +26,24 @@ const VerifyCredentialsModal = ({ isOpen, onClose, shopData }) => {
     setChecklist(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const handleApprove = () => {
-    // In a real app, you'd trigger your Supabase update here
-    setIsSuccess(true);
+  const handleApprove = async () => {
+    try {
+      // Now 'supabase' is defined and can execute the update
+      const { error } = await supabase
+        .from('profiles')
+        .update({ 
+          verification_status: 'verified', 
+          is_verified: true                
+        })
+        .eq('id', shopData.id);
+
+      if (error) throw error;
+
+      setIsSuccess(true);
+    } catch (error) {
+      console.error("Verification failed:", error.message);
+      alert("Verification Error: " + error.message);
+    }
   };
 
   const handleFinalClose = () => {
@@ -64,11 +80,17 @@ const VerifyCredentialsModal = ({ isOpen, onClose, shopData }) => {
                 </div>
               </div>
 
-              {/* Document Previews */}
-              <div className="space-y-4 mb-8">
-                <DocumentPreview title="Business Permit / DTI Registration" id="BP-EPH-2026" />
-                <DocumentPreview title="Technical Certification" id="TESDA-CERT-2026" />
-              </div>
+              {/* Document Previews Section */}
+<div className="space-y-4 mb-8">
+  <DocumentPreview 
+    title="Business Permit / DTI Registration" 
+    url={shopData?.business_permit_url} 
+  />
+  <DocumentPreview 
+    title="Technical Certification" 
+    url={shopData?.tech_cert_url} 
+  />
+</div>
 
               {/* Checklist */}
               <div className="border border-blue-100 bg-blue-50/30 rounded-xl p-6">
@@ -123,15 +145,35 @@ const VerifyCredentialsModal = ({ isOpen, onClose, shopData }) => {
 };
 
 // Helper Components
-const DocumentPreview = ({ title, id }) => (
+// Updated Helper Component
+const DocumentPreview = ({ title, url }) => (
   <div>
     <p className="text-xs font-semibold text-slate-500 mb-2">{title}</p>
-    <div className="border-2 border-dashed border-slate-200 rounded-xl p-6 flex flex-col items-center justify-center bg-white hover:border-blue-300 transition-colors group cursor-pointer">
-      <FileText size={24} className="text-slate-300 mb-2 group-hover:text-blue-400" />
-      <p className="text-[10px] text-slate-400 mb-1">ID: {id}</p>
-      <button className="text-xs font-bold text-purple-600 hover:underline flex items-center gap-1">
-        <Eye size={12} /> View
-      </button>
+    <div className="border-2 border-dashed border-slate-200 rounded-xl overflow-hidden bg-slate-50 flex flex-col items-center justify-center min-h-[150px]">
+      {url ? (
+        <div className="w-full h-full flex flex-col items-center p-2">
+          {/* If it's an image, show it. If it's a PDF, show the icon. */}
+          <img 
+            src={url} 
+            alt={title} 
+            className="max-h-32 object-contain rounded mb-2 shadow-sm"
+            onError={(e) => { e.target.style.display = 'none'; }} // Fallback if not an image
+          />
+          <a 
+            href={url} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-xs font-bold text-purple-600 hover:underline flex items-center gap-1"
+          >
+            <Eye size={12} /> Full Screen View
+          </a>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center">
+          <XCircle size={24} className="text-red-300 mb-2" />
+          <p className="text-[10px] text-red-400 font-bold">No file uploaded</p>
+        </div>
+      )}
     </div>
   </div>
 );
