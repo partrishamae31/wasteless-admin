@@ -57,10 +57,21 @@ const UserManagement = () => {
     setFilteredUsers(result);
   }, [searchQuery, roleFilter, users]);
 
-  const handleVerifyClick = (user) => {
-    setSelectedUser(user);
-    setIsModalOpen(true);
-  };
+  const handleVerify = async () => {
+  const { error } = await supabase
+    .from('profiles')
+    .update({ is_verified: true })
+    .eq('id', shopData.id);
+
+  if (error) {
+    console.error("Verification failed:", error.message);
+  } else {
+    console.log("User verified!");
+
+    onClose();       // close modal
+    window.location.reload(); // TEMP fix OR better: refetch users
+  }
+};
 
   const handleViewDetails = (user) => {
     setSelectedUserForDetails(user);
@@ -92,7 +103,6 @@ const UserManagement = () => {
           <option value="All">All Roles</option>
           <option value="Repair Shop">Repair Shop</option>
           <option value="Seller">Seller</option>
-          <option value="Citizen">Citizen</option>
         </select>
       </div>
 

@@ -8,14 +8,31 @@ const AdminDashboard = () => {
   const [chartData, setChartData] = useState([]);
 
   useEffect(() => {
-    // Fetch real-time stats from your Supabase tables
-    const fetchStats = async () => {
-      const { count: userCount } = await supabase.from('profiles').select('*', { count: 'exact', head: true });
-      const { count: listCount } = await supabase.from('listings').select('*', { count: 'exact', head: true });
-      // Update stats state here...
-    };
-    
-    // Mock data for the Transaction Volume chart
+  const fetchStats = async () => {
+    const { count: userCount, error: userError } = await supabase
+      .from('profiles')
+      .select('*', { count: 'exact', head: true });
+
+    const { count: listCount, error: listError } = await supabase
+      .from('listings')
+      .select('*', { count: 'exact', head: true });
+
+    const { count: transactionCount, error: txError } = await supabase
+      .from('transactions')
+      .select('*', { count: 'exact', head: true });
+
+    if (userError || listError || txError) {
+      console.error(userError || listError || txError);
+      return;
+    }
+
+    setStats({
+      users: userCount || 0,
+      listings: listCount || 0,
+      transactions: transactionCount || 0,
+    });
+
+    // 👇 chart data stays here OR can be static
     setChartData([
       { name: 'Jan', transactions: 42 },
       { name: 'Feb', transactions: 51 },
@@ -23,7 +40,10 @@ const AdminDashboard = () => {
       { name: 'Apr', transactions: 74 },
       { name: 'May', transactions: 68 },
     ]);
-  }, []);
+  };
+
+  fetchStats();
+}, []);
 
  return (
     <div className="p-8"> {/* Only a padding div, no flex or aside here */}
