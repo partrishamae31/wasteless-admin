@@ -55,11 +55,11 @@ const AdminDashboard = () => {
       <div className="grid grid-cols-6 gap-4 mb-8">
         {[
           { label: 'Total Users', val: stats.users },
-          { label: 'Active Users', val: 390 },
+          { label: 'Active Users', val: stats.users },
           { label: 'Total Transactions', val: stats.transactions },
           { label: 'Active Listings', val: stats.listings },
-          { label: 'Verified Shops', val: 87 },
-          { label: 'Devices Cataloged', val: 456 }
+          { label: 'Verified Shops', val:stats.is_verified },
+          { label: 'Devices Cataloged', val:listings }
         ].map((item, i) => (
           <div key={i} className="bg-white p-6 rounded-xl shadow-sm text-center border border-slate-100">
             <div className="text-2xl font-bold text-slate-900">{item.val.toLocaleString()}</div>
