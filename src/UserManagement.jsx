@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from './supabaseClient';
-import { Search, Filter, ShieldCheck, ShieldAlert, MoreHorizontal, Store, User } from 'lucide-react';
+import { Search, ShieldCheck, ShieldAlert, Store, User } from 'lucide-react';
 import VerifyCredentialsModal from './components/modals/VerifyCredentialsModal'; 
 import UserDetailsModal from './components/modals/UserDetailsModal';
 
 const UserManagement = () => {
-  // State for database data
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,7 +17,7 @@ const UserManagement = () => {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [selectedUserForDetails, setSelectedUserForDetails] = useState(null);
 
-  // 1. Fetch data from Supabase Profiles table
+  // 1. Fetch data from Supabase
   const fetchUsers = async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -39,7 +38,7 @@ const UserManagement = () => {
     fetchUsers();
   }, []);
 
-  // 2. Handle Search and Filtering Logic
+  // 2. Handle Search and Filtering
   useEffect(() => {
     let result = users;
 
@@ -57,25 +56,21 @@ const UserManagement = () => {
     setFilteredUsers(result);
   }, [searchQuery, roleFilter, users]);
 
-  const handleVerify = async () => {
-  const { error } = await supabase
-    .from('profiles')
-    .update({ is_verified: true })
-    .eq('id', shopData.id);
-
-  if (error) {
-    console.error("Verification failed:", error.message);
-  } else {
-    console.log("User verified!");
-
-    onClose();       // close modal
-    window.location.reload(); // TEMP fix OR better: refetch users
-  }
-};
+  // 3. Modal Handlers
+  const handleVerifyClick = (user) => {
+    setSelectedUser(user);
+    setIsModalOpen(true);
+  };
 
   const handleViewDetails = (user) => {
     setSelectedUserForDetails(user);
     setIsDetailsOpen(true);
+  };
+
+  // 4. Update UI after verification (Pass this to VerifyCredentialsModal)
+  const onVerificationSuccess = () => {
+    fetchUsers(); // Simply refetch to keep data in sync
+    setIsModalOpen(false);
   };
 
   return (
@@ -109,7 +104,7 @@ const UserManagement = () => {
       {/* User Table */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         {loading ? (
-          <div className="p-20 text-center text-slate-500">Loading Wasteless Users...</div>
+          <div className="p-20 text-center text-slate-500 italic">Loading Wasteless Users...</div>
         ) : (
           <table className="w-full text-left border-collapse">
             <thead className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-semibold">
@@ -183,6 +178,7 @@ const UserManagement = () => {
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)} 
         shopData={selectedUser}
+        onSuccess={onVerificationSuccess}
       />
 
       {/* User Details Modal */}
