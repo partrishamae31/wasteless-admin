@@ -1,15 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { supabase } from './supabaseClient';
-import { Search, ShieldCheck, ShieldAlert, Store, User } from 'lucide-react';
-import VerifyCredentialsModal from './components/modals/VerifyCredentialsModal'; 
-import UserDetailsModal from './components/modals/UserDetailsModal';
+import React, { useEffect, useState } from "react";
+import { supabase } from "./supabaseClient";
+import { Search, ShieldCheck, ShieldAlert, Store, User } from "lucide-react";
+import VerifyCredentialsModal from "./components/modals/VerifyCredentialsModal";
+import UserDetailsModal from "./components/modals/UserDetailsModal";
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [roleFilter, setRoleFilter] = useState('All');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState("All");
 
   // Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -21,12 +21,12 @@ const UserManagement = () => {
   const fetchUsers = async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .order('created_at', { ascending: false });
+      .from("profiles")
+      .select("*")
+      .order("created_at", { ascending: false });
 
     if (error) {
-      console.error('Error fetching users:', error.message);
+      console.error("Error fetching users:", error.message);
     } else {
       setUsers(data || []);
       setFilteredUsers(data || []);
@@ -43,14 +43,15 @@ const UserManagement = () => {
     let result = users;
 
     if (searchQuery) {
-      result = result.filter(u => 
-        u.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        u.email?.toLowerCase().includes(searchQuery.toLowerCase())
+      result = result.filter(
+        (u) =>
+          u.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          u.email?.toLowerCase().includes(searchQuery.toLowerCase()),
       );
     }
 
-    if (roleFilter !== 'All') {
-      result = result.filter(u => u.role === roleFilter);
+    if (roleFilter !== "All") {
+      result = result.filter((u) => u.role === roleFilter);
     }
 
     setFilteredUsers(result);
@@ -81,16 +82,16 @@ const UserManagement = () => {
       <div className="flex gap-4 mb-6">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-3 text-slate-400" size={18} />
-          <input 
-            type="text" 
-            placeholder="Search users by name or email..." 
+          <input
+            type="text"
+            placeholder="Search users by name or email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 bg-white"
           />
         </div>
-        
-        <select 
+
+        <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
           className="flex items-center gap-2 px-4 py-2 border border-slate-200 rounded-lg bg-white text-sm font-medium hover:bg-slate-50 focus:outline-none"
@@ -104,7 +105,9 @@ const UserManagement = () => {
       {/* User Table */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         {loading ? (
-          <div className="p-20 text-center text-slate-500 italic">Loading Wasteless Users...</div>
+          <div className="p-20 text-center text-slate-500 italic">
+            Loading Wasteless Users...
+          </div>
         ) : (
           <table className="w-full text-left border-collapse">
             <thead className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wider font-semibold">
@@ -122,13 +125,19 @@ const UserManagement = () => {
                 filteredUsers.map((user) => (
                   <tr key={user.id} className="hover:bg-slate-50/50 transition">
                     <td className="px-6 py-4">
-                      <div className="font-semibold text-slate-900">{user.full_name || 'Anonymous User'}</div>
+                      <div className="font-semibold text-slate-900">
+                        {user.full_name || "Anonymous User"}
+                      </div>
                       <div className="text-xs text-slate-500">{user.email}</div>
                     </td>
                     <td className="px-6 py-4">
                       <span className="flex items-center gap-2 text-slate-600">
-                        {user.role === 'Repair Shop' ? <Store size={14} /> : <User size={14} />}
-                        {user.role || 'User'}
+                        {user.role === "Repair Shop" ? (
+                          <Store size={14} />
+                        ) : (
+                          <User size={14} />
+                        )}
+                        {user.role || "User"}
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -142,30 +151,41 @@ const UserManagement = () => {
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-center text-slate-700">{user.transactions_count || 0}</td>
-                    <td className="px-6 py-4 text-center text-slate-700">{user.rating ? `${user.rating} ★` : 'N/A'}</td>
+                    <td className="px-6 py-4 text-center text-slate-700">
+                      {user.transactions_count || 0}
+                    </td>
+                    <td className="px-6 py-4 text-center text-slate-700">
+                      {user.rating ? `${user.rating} ★` : "N/A"}
+                    </td>
                     <td className="px-6 py-4 text-right space-x-2">
                       {!user.is_verified && (
-                        <button 
+                        <button
                           onClick={() => handleVerifyClick(user)}
                           className="px-3 py-1 bg-emerald-600 text-white text-xs rounded-md hover:bg-emerald-700 font-medium"
                         >
                           Verify
                         </button>
                       )}
-                      <button 
+                      <button
                         onClick={() => handleViewDetails(user)}
                         className="px-3 py-1 border border-slate-200 text-slate-600 text-xs rounded-md hover:bg-slate-50 font-medium"
                       >
                         View
                       </button>
-                      <button className="px-3 py-1 bg-red-600 text-white text-xs rounded-md hover:bg-red-700 font-medium">Suspend</button>
+                      <button className="px-3 py-1 bg-red-600 text-white text-xs rounded-md hover:bg-red-700 font-medium">
+                        Suspend
+                      </button>
                     </td>
                   </tr>
                 ))
               ) : (
                 <tr>
-                  <td colSpan="6" className="px-6 py-10 text-center text-slate-400">No users found matching your criteria.</td>
+                  <td
+                    colSpan="6"
+                    className="px-6 py-10 text-center text-slate-400"
+                  >
+                    No users found matching your criteria.
+                  </td>
                 </tr>
               )}
             </tbody>
@@ -174,17 +194,17 @@ const UserManagement = () => {
       </div>
 
       {/* Verification Modal */}
-      <VerifyCredentialsModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+      <VerifyCredentialsModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
         shopData={selectedUser}
-        onSuccess={onVerificationSuccess}
+        onSuccess={fetchUsers} // This re-pulls data from Supabase
       />
 
       {/* User Details Modal */}
-      <UserDetailsModal 
-        isOpen={isDetailsOpen} 
-        onClose={() => setIsDetailsOpen(false)} 
+      <UserDetailsModal
+        isOpen={isDetailsOpen}
+        onClose={() => setIsDetailsOpen(false)}
         userData={selectedUserForDetails}
       />
     </div>

@@ -11,7 +11,7 @@ import {
   ArrowRight
 } from "lucide-react";
 
-const VerifyCredentialsModal = ({ isOpen, onClose, shopData }) => {
+const VerifyCredentialsModal = ({ isOpen, onClose, shopData, onSuccess }) => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [checklist, setChecklist] = useState({
     permitValid: false,
@@ -28,7 +28,6 @@ const VerifyCredentialsModal = ({ isOpen, onClose, shopData }) => {
 
   const handleApprove = async () => {
     try {
-      // Now 'supabase' is defined and can execute the update
       const { error } = await supabase
         .from('profiles')
         .update({ 
@@ -40,6 +39,10 @@ const VerifyCredentialsModal = ({ isOpen, onClose, shopData }) => {
       if (error) throw error;
 
       setIsSuccess(true);
+      
+      // Call the success callback to refresh the parent list
+      if (onSuccess) onSuccess(); 
+      
     } catch (error) {
       console.error("Verification failed:", error.message);
       alert("Verification Error: " + error.message);
