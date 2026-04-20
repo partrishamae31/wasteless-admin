@@ -198,7 +198,7 @@ const UserManagement = () => {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         shopData={selectedUser}
-        onSuccess={fetchUsers} // This re-pulls data from Supabase
+        onSuccess={fetchUsers} // This is the "magic" that refreshes the list
       />
 
       {/* User Details Modal */}

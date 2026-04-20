@@ -27,27 +27,29 @@ const VerifyCredentialsModal = ({ isOpen, onClose, shopData, onSuccess }) => {
   };
 
   const handleApprove = async () => {
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ 
-          verification_status: 'verified', 
-          is_verified: true                
-        })
-        .eq('id', shopData.id);
+  try {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ 
+        // 1. Update the status string
+        verification_status: 'verified', 
+        // 2. Update the boolean your table is actually checking
+        is_verified: true                
+      })
+      .eq('id', shopData.id); // Ensure shopData.id is correctly passed!
 
-      if (error) throw error;
+    if (error) throw error;
 
-      setIsSuccess(true);
-      
-      // Call the success callback to refresh the parent list
-      if (onSuccess) onSuccess(); 
-      
-    } catch (error) {
-      console.error("Verification failed:", error.message);
-      alert("Verification Error: " + error.message);
-    }
-  };
+    setIsSuccess(true);
+    
+    // IMPORTANT: Call this to tell the parent to refresh the list
+    if (onSuccess) onSuccess(); 
+    
+  } catch (error) {
+    console.error("Verification failed:", error.message);
+    alert("Verification Error: " + error.message);
+  }
+};
 
   const handleFinalClose = () => {
     setIsSuccess(false);
