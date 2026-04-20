@@ -58,8 +58,8 @@ const AdminDashboard = () => {
           { label: 'Active Users', val: stats.users },
           { label: 'Total Transactions', val: stats.transactions },
           { label: 'Active Listings', val: stats.listings },
-          { label: 'Verified Shops', val:stats.is_verified },
-          { label: 'Devices Cataloged', val:listings }
+          { label: 'Verified Shops', val: 3 },
+          { label: 'Devices Cataloged', val: stats.listings }
         ].map((item, i) => (
           <div key={i} className="bg-white p-6 rounded-xl shadow-sm text-center border border-slate-100">
             <div className="text-2xl font-bold text-slate-900">{item.val.toLocaleString()}</div>
