@@ -10,14 +10,11 @@ const UserManagement = () => {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");
-
-  // Modal States
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [selectedUserForDetails, setSelectedUserForDetails] = useState(null);
 
-  // 1. Fetch data from Supabase
   const fetchUsers = async () => {
     setLoading(true);
     const { data, error } = await supabase
@@ -38,10 +35,8 @@ const UserManagement = () => {
     fetchUsers();
   }, []);
 
-  // 2. Handle Search and Filtering
   useEffect(() => {
     let result = users;
-
     if (searchQuery) {
       result = result.filter(
         (u) =>
@@ -57,6 +52,23 @@ const UserManagement = () => {
     setFilteredUsers(result);
   }, [searchQuery, roleFilter, users]);
 
+  const handleSuspendToggle = async (user) => {
+    const newStatus = user.status === "active" ? "suspended" : "active";
+    const confirmMsg = `Are you sure you want to ${newStatus === "suspended" ? "SUSPEND" : "ACTIVATE"} ${user.full_name}?`;
+
+    if (window.confirm(confirmMsg)) {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ status: newStatus })
+        .eq("id", user.id);
+
+      if (error) {
+        alert("Error updating status: " + error.message);
+      } else {
+        fetchUsers();
+      }
+    }
+  };
   // 3. Modal Handlers
   const handleVerifyClick = (user) => {
     setSelectedUser(user);
@@ -122,62 +134,87 @@ const UserManagement = () => {
             </thead>
             <tbody className="divide-y divide-slate-100 text-sm">
               {filteredUsers.length > 0 ? (
-                filteredUsers.map((user) => (
-                  <tr key={user.id} className="hover:bg-slate-50/50 transition">
-                    <td className="px-6 py-4">
-                      <div className="font-semibold text-slate-900">
-                        {user.full_name || "Anonymous User"}
-                      </div>
-                      <div className="text-xs text-slate-500">{user.email}</div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="flex items-center gap-2 text-slate-600">
-                        {user.role === "Repair Shop" ? (
-                          <Store size={14} />
+                filteredUsers.map((user) => {
+                  // Normalize the role for comparison
+                  const role = user.role?.toLowerCase();
+                  const isRepairShop =
+                    role === "repair shop" || role === "repair_shop";
+                  const isHarvester = role === "harvester";
+
+                  return (
+                    <tr
+                      key={user.id}
+                      className="hover:bg-slate-50/50 transition"
+                    >
+                      <td className="px-6 py-4">
+                        <div className="font-semibold text-slate-900">
+                          {user.full_name || "Anonymous User"}
+                        </div>
+                        <div className="text-xs text-slate-500">
+                          {user.email}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="flex items-center gap-2 text-slate-600 capitalize">
+                          {isRepairShop ? (
+                            <Store size={14} />
+                          ) : (
+                            <User size={14} />
+                          )}
+                          {user.role || "User"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        {user.is_verified ? (
+                          <span className="flex items-center gap-1 text-emerald-600 font-medium">
+                            <ShieldCheck size={14} /> Verified
+                          </span>
                         ) : (
-                          <User size={14} />
+                          <span className="flex items-center gap-1 text-orange-500 font-medium">
+                            <ShieldAlert size={14} /> Pending
+                          </span>
                         )}
-                        {user.role || "User"}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      {user.is_verified ? (
-                        <span className="flex items-center gap-1 text-emerald-600 font-medium">
-                          <ShieldCheck size={14} /> Verified
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-1 text-orange-500 font-medium">
-                          <ShieldAlert size={14} /> Pending
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-center text-slate-700">
-                      {user.transactions_count || 0}
-                    </td>
-                    <td className="px-6 py-4 text-center text-slate-700">
-                      {user.rating ? `${user.rating} ★` : "N/A"}
-                    </td>
-                    <td className="px-6 py-4 text-right space-x-2">
-                      {!user.is_verified && (
+                      </td>
+                      <td className="px-6 py-4 text-center text-slate-700">
+                        {user.transactions_count || 0}
+                      </td>
+                      <td className="px-6 py-4 text-center text-slate-700">
+                        {user.rating ? `${user.rating} ★` : "N/A"}
+                      </td>
+                      <td className="px-6 py-4 text-right space-x-2">
+                        {/* Verify Button: Only for unverified Repair Shops OR Harvesters */}
+                        {(isRepairShop || isHarvester) && !user.is_verified && (
+                          <button
+                            onClick={() => handleVerifyClick(user)}
+                            className="px-3 py-1 bg-emerald-600 text-white text-xs rounded-md hover:bg-emerald-700 font-medium transition"
+                          >
+                            Verify
+                          </button>
+                        )}
+
                         <button
-                          onClick={() => handleVerifyClick(user)}
-                          className="px-3 py-1 bg-emerald-600 text-white text-xs rounded-md hover:bg-emerald-700 font-medium"
+                          onClick={() => handleViewDetails(user)}
+                          className="px-3 py-1 border border-slate-200 text-slate-600 text-xs rounded-md hover:bg-slate-50 font-medium transition"
                         >
-                          Verify
+                          View
                         </button>
-                      )}
-                      <button
-                        onClick={() => handleViewDetails(user)}
-                        className="px-3 py-1 border border-slate-200 text-slate-600 text-xs rounded-md hover:bg-slate-50 font-medium"
-                      >
-                        View
-                      </button>
-                      <button className="px-3 py-1 bg-red-600 text-white text-xs rounded-md hover:bg-red-700 font-medium">
-                        Suspend
-                      </button>
-                    </td>
-                  </tr>
-                ))
+
+                        <button
+                          onClick={() => handleSuspendToggle(user)}
+                          className={`px-3 py-1 text-xs rounded-md font-medium text-white transition ${
+                            user.status === "suspended"
+                              ? "bg-blue-600 hover:bg-blue-700"
+                              : "bg-red-600 hover:bg-red-700"
+                          }`}
+                        >
+                          {user.status === "suspended"
+                            ? "Unsuspend"
+                            : "Suspend"}
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
                   <td
